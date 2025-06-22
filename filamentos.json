@@ -1,0 +1,5 @@
+[
+  { "color": "rojo", "precio": 16000 },
+  { "color": "negro", "precio": 15500 },
+  { "color": "blanco", "precio": 15800 }
+]

@@ -85,17 +85,28 @@
   <h2>Total: <span id="costoTotal">0</span> CLP</h2>
 
   <script>
-    const filamentos = [
-      { color: "rojo", precio: 16000 },
-      { color: "negro", precio: 15500 },
-      { color: "blanco", precio: 15800 }
-    ];
-
+    let filamentos = [];
     const precioKw = 200; // CLP por kW
     const potencia = 0.15; // kW
     let contadorPartes = 0;
 
+    async function cargarFilamentos() {
+      try {
+        const response = await fetch('filamentos.json');
+        if (!response.ok) throw new Error('No se pudo cargar el archivo JSON');
+        filamentos = await response.json();
+        agregarParte(); // Agregar la primera parte después de cargar los datos
+      } catch (error) {
+        alert('Error cargando los datos de filamentos: ' + error.message);
+      }
+    }
+
     function agregarParte() {
+      if (filamentos.length === 0) {
+        alert('Los datos de filamento aún no están cargados.');
+        return;
+      }
+
       const container = document.getElementById('partes');
       const div = document.createElement('div');
       div.className = 'parte';
@@ -123,34 +134,33 @@
 
     function eliminarParte(id) {
       const parte = document.getElementById(`parte-${id}`);
-      if (parte) {
-        parte.remove();
-      }
+      if (parte) parte.remove();
     }
 
     function calcularCosto() {
       let total = 0;
       for (let i = 0; i < contadorPartes; i++) {
         const parte = document.getElementById(`parte-${i}`);
-        if (!parte) continue; // Si fue eliminada
+        if (!parte) continue;
 
         const color = document.getElementById(`color-${i}`).value;
         const gramos = parseFloat(document.getElementById(`gramos-${i}`).value) || 0;
         const horas = parseFloat(document.getElementById(`horas-${i}`).value) || 0;
 
         const filamento = filamentos.find(f => f.color === color);
+        if (!filamento) continue;
+
         const precioPorGramo = filamento.precio / 1000;
         const costoFilamento = gramos * precioPorGramo;
         const costoEnergia = horas * potencia * precioKw;
 
-        const costoParte = costoFilamento + costoEnergia;
-        total += costoParte;
+        total += costoFilamento + costoEnergia;
       }
       document.getElementById('costoTotal').innerText = total.toFixed(0);
     }
 
-    // Agrega una parte inicial al cargar
-    agregarParte();
+    // Iniciar al cargar
+    cargarFilamentos();
   </script>
 
 </body>
