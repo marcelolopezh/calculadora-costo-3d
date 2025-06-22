@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Costos de Impresión 3D</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 40px;
+      background-color: #f4f6f8;
+      color: #333;
+    }
+
+    h1 {
+      color: #0077cc;
+    }
+
+    .btn {
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin: 10px 5px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+
+    .btn:hover {
+      background-color: #005fa3;
+    }
+
+    .parte {
+      background-color: #fff;
+      border-left: 5px solid #0077cc;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .parte h3 {
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input, select {
+      padding: 6px;
+      margin-top: 5px;
+      width: 100%;
+      max-width: 300px;
+      box-sizing: border-box;
+    }
+
+    .eliminar-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #cc0000;
+    }
+
+    #costoTotal {
+      color: green;
+      font-size: 24px;
+    }
+
+    #partes {
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Calculadora de Costos de Impresión 3D</h1>
+
+  <div id="partes"></div>
+  <button class="btn" onclick="agregarParte()">➕ Agregar Parte</button>
+  <button class="btn" onclick="calcularCosto()">💰 Calcular Costo Total</button>
+
+  <h2>Total: <span id="costoTotal">0</span> CLP</h2>
+
+  <script>
+    const filamentos = [
+      { color: "rojo", precio: 16000 },
+      { color: "negro", precio: 15500 },
+      { color: "blanco", precio: 15800 }
+    ];
+
+    const precioKw = 200; // CLP por kW
+    const potencia = 0.15; // kW
+    let contadorPartes = 0;
+
+    function agregarParte() {
+      const container = document.getElementById('partes');
+      const div = document.createElement('div');
+      div.className = 'parte';
+      div.id = `parte-${contadorPartes}`;
+
+      div.innerHTML = `
+        <button class="btn eliminar-btn" onclick="eliminarParte(${contadorPartes})">❌ Eliminar</button>
+        <h3>Parte ${contadorPartes + 1}</h3>
+        <label>Color del filamento:
+          <select id="color-${contadorPartes}">
+            ${filamentos.map(f => `<option value="${f.color}">${f.color}</option>`).join('')}
+          </select>
+        </label>
+        <label>Gramos utilizados:
+          <input type="number" id="gramos-${contadorPartes}" min="0" step="1" placeholder="Ej: 50">
+        </label>
+        <label>Horas de impresión:
+          <input type="number" id="horas-${contadorPartes}" min="0" step="0.1" placeholder="Ej: 2.5">
+        </label>
+      `;
+
+      container.appendChild(div);
+      contadorPartes++;
+    }
+
+    function eliminarParte(id) {
+      const parte = document.getElementById(`parte-${id}`);
+      if (parte) {
+        parte.remove();
+      }
+    }
+
+    function calcularCosto() {
+      let total = 0;
+      for (let i = 0; i < contadorPartes; i++) {
+        const parte = document.getElementById(`parte-${i}`);
+        if (!parte) continue; // Si fue eliminada
+
+        const color = document.getElementById(`color-${i}`).value;
+        const gramos = parseFloat(document.getElementById(`gramos-${i}`).value) || 0;
+        const horas = parseFloat(document.getElementById(`horas-${i}`).value) || 0;
+
+        const filamento = filamentos.find(f => f.color === color);
+        const precioPorGramo = filamento.precio / 1000;
+        const costoFilamento = gramos * precioPorGramo;
+        const costoEnergia = horas * potencia * precioKw;
+
+        const costoParte = costoFilamento + costoEnergia;
+        total += costoParte;
+      }
+      document.getElementById('costoTotal').innerText = total.toFixed(0);
+    }
+
+    // Agrega una parte inicial al cargar
+    agregarParte();
+  </script>
+
+</body>
+</html>
